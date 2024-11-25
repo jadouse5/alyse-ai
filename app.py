@@ -119,7 +119,6 @@ def display_annotation_list():
             if st.button("Delete", key=f"delete_{i}"):
                 st.session_state["annotations"].pop(i)
                 st.rerun()
-
 def save_annotations(image, uploaded_file):
     """Handle saving and downloading annotations"""
     st.sidebar.subheader("💾 Save & Export")
@@ -170,9 +169,10 @@ def save_annotations(image, uploaded_file):
             ]
         }
         
-        json_buffer = io.BytesIO()
-        json.dump(annotations_data, json_buffer, indent=2)
-        json_buffer.seek(0)
+        # Convert JSON to string first, then to bytes
+        json_str = json.dumps(annotations_data, indent=2)
+        json_bytes = json_str.encode('utf-8')
+        json_buffer = io.BytesIO(json_bytes)
         
         # Download buttons
         col1, col2 = st.sidebar.columns(2)
@@ -192,7 +192,6 @@ def save_annotations(image, uploaded_file):
             )
         
         st.sidebar.success("✅ Files saved successfully!")
-
 def main():
     """Main application logic"""
     initialize_session_state()
