@@ -68,18 +68,36 @@ def create_sidebar_controls():
     
     return stroke_color, stroke_width, annotation_category
 
+def preprocess_image(image):
+    """Resize image if too large for Streamlit Cloud"""
+    max_size = (800, 800)  # Maximum dimensions
+    
+    # Calculate aspect ratio
+    width_ratio = max_size[0] / image.size[0]
+    height_ratio = max_size[1] / image.size[1]
+    resize_ratio = min(width_ratio, height_ratio)
+    
+    # Only resize if image is too large
+    if resize_ratio < 1:
+        new_size = (
+            int(image.size[0] * resize_ratio),
+            int(image.size[1] * resize_ratio)
+        )
+        return image.resize(new_size, Image.Resampling.LANCZOS)
+    return image
+
 def handle_canvas_drawing(image, stroke_color, stroke_width, category):
-    """Handle canvas drawing and annotation creation"""
-    st.write("📝 Draw on the image below to create annotations:")
+    """Handle canvas drawing with preprocessed image"""
+    processed_image = preprocess_image(image)
     
     canvas_result = st_canvas(
         fill_color="rgba(0, 0, 0, 0)",
         stroke_width=stroke_width,
         stroke_color=stroke_color,
-        background_image=image,
+        background_image=processed_image,
         update_streamlit=True,
-        width=image.size[0],
-        height=image.size[1],
+        width=processed_image.size[0],
+        height=processed_image.size[1],
         drawing_mode=st.session_state["current_tool"],
         display_toolbar=True,
         key="canvas",
@@ -97,6 +115,7 @@ def handle_canvas_drawing(image, stroke_color, stroke_width, category):
                 }
                 st.session_state["annotations"].append(new_annotation)
                 st.session_state["annotation_history"].append(new_annotation)
+
 
 def display_annotation_list():
     """Display and manage list of annotations"""
